@@ -42,9 +42,9 @@ def predict_adult(model, audio_path, sr=16000, device="cuda"):
 if __name__ == "__main__":
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    df = pd.read_csv("annotations.csv")  
+    df = pd.read_csv("peds_annotations.csv")  
     files = df["filename"].tolist()
-    labels = df["label"].tolist()
+    labels = df["adult_audio"].tolist()
 
     dataset = AudioDataset(files, labels)
     dataloader = DataLoader(dataset, batch_size=2, shuffle=True, collate_fn=collate_fn)
