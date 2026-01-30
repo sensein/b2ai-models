@@ -1,5 +1,3 @@
-
-import torch
 import torch.nn as nn
 import pandas as pd
 from transformers import AutoModel
@@ -8,6 +6,8 @@ class WavLMBinaryClassifier(nn.Module):
     def __init__(self, model_name="microsoft/wavlm-base", dropout=0.1):
         super().__init__()
         self.encoder = AutoModel.from_pretrained(model_name)
+        self.encoder.config.mask_time_prob = 0.0
+        self.encoder.config.mask_feature_prob = 0.0
         hidden_size = self.encoder.config.hidden_size
 
         # Binary classification head

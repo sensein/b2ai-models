@@ -10,10 +10,22 @@ from classifiers.wavlmBinaryClassifier import WavLMBinaryClassifier
 from train.train import train_model
 
 def collate_fn(batch):
-    input_values, labels = zip(*batch)
-    input_values = torch.nn.utils.rnn.pad_sequence(input_values, batch_first=True)
-    labels = torch.stack(labels)
-    return input_values, labels
+    all_inputs = []
+    all_labels = []
+
+    for inputs, label in batch:
+        # inputs: (num_chunks, T)
+        for i in range(inputs.size(0)):
+            all_inputs.append(inputs[i])
+            all_labels.append(label)
+
+    all_inputs = torch.nn.utils.rnn.pad_sequence(
+        all_inputs, batch_first=True
+    )
+
+    all_labels = torch.stack(all_labels)
+
+    return all_inputs, all_labels
 
 
 def predict_adult(model, audio_path, sr=16000, device="cuda"):
@@ -42,28 +54,28 @@ def predict_adult(model, audio_path, sr=16000, device="cuda"):
 if __name__ == "__main__":
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    df = pd.read_csv("peds_annotations.csv")  
-    files = df["filename"].tolist()
+    df = pd.read_csv("/orcd/data/satra/002/datasets/b2aivoice/b2ai-model/b2ai-models/annotations/train/peds_annotation.csv")  
+    files = df["file_path"].tolist()
     labels = df["adult_audio"].tolist()
 
     dataset = AudioDataset(files, labels)
-    dataloader = DataLoader(dataset, batch_size=2, shuffle=True, collate_fn=collate_fn)
+    dataloader = DataLoader(dataset, batch_size=1, shuffle=True, collate_fn=collate_fn, num_workers=2, pin_memory=True)
 
 
     model = WavLMBinaryClassifier()
 
 
-    train_model(model, dataloader, epochs=3, lr=1e-4, device=device)
+    train_model(model, dataloader, epochs=6, lr=1e-4, device=device)
 
     # Load model for inference
-    model_infer = WavLMBinaryClassifier()
-    state_dict = torch.load("adult-detector-wavlm/pytorch_model.bin", map_location=device)
-    model_infer.load_state_dict(state_dict)
-    model_infer.to(device)
-    model_infer.eval()
+    # model_infer = WavLMBinaryClassifier()
+    # state_dict = torch.load("adult-detector-wavlm/pytorch_model.bin", map_location=device)
+    # model_infer.load_state_dict(state_dict)
+    # model_infer.to(device)
+    # model_infer.eval()
 
-    # Test on new audio
-    test_audio = "new_audio.wav"
-    probability = predict_adult(model_infer, test_audio, device=device)
-    print(f"Adult probability for {test_audio}: {probability:.2f}")
-    print("Adult present?", "YES" if probability > 0.5 else "NO")
+    # # Test on new audio
+    # test_audio = "new_audio.wav"
+    # probability = predict_adult(model_infer, test_audio, device=device)
+    # print(f"Adult probability for {test_audio}: {probability:.2f}")
+    # print("Adult present?", "YES" if probability > 0.5 else "NO")
