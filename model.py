@@ -54,19 +54,26 @@ def predict_adult(model, audio_path, sr=16000, device="cuda"):
 if __name__ == "__main__":
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    df = pd.read_csv("/orcd/data/satra/002/datasets/b2aivoice/b2ai-model/b2ai-models/annotations/train/peds_annotation.csv")  
-    files = df["file_path"].tolist()
-    labels = df["adult_audio"].tolist()
+    #df = pd.read_csv("/orcd/data/satra/002/datasets/b2aivoice/b2ai-model/b2ai-models/annotations/train/peds_annotation.csv")
+    df = pd.read_csv("/orcd/data/satra/002/datasets/b2aivoice/b2ai-model/b2ai-models/annotations/pets/pets.csv")  
+    files = df["filename"].tolist()
+    labels = df["animal"].tolist()
 
     dataset = AudioDataset(files, labels)
-    dataloader = DataLoader(dataset, batch_size=1, shuffle=True, collate_fn=collate_fn, num_workers=2, pin_memory=True)
+    dataloader = DataLoader(dataset, batch_size=4, shuffle=True, collate_fn=collate_fn, num_workers=2, pin_memory=True)
 
 
     model = WavLMBinaryClassifier()
+    model.to(device)
 
+    # freeze layers
+    for param in model.wavlm.parameters():
+        param.requires_grad = False
 
-    train_model(model, dataloader, epochs=6, lr=1e-4, device=device)
-
+    # optional: check trainable params
+    trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    print("Trainable params:", trainable)  # should be only the classifier head
+    train_model(model, dataloader, epochs=6, lr=5e-4, device=device, save_path="pet-detector-wavlm.pt")
     # Load model for inference
     # model_infer = WavLMBinaryClassifier()
     # state_dict = torch.load("adult-detector-wavlm/pytorch_model.bin", map_location=device)
