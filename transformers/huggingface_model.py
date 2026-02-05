@@ -10,6 +10,7 @@ from transformers import (
     Trainer,
     pipeline,
 )
+from customTrainer.trainer import WeightedTrainer, calc_pos_weight_tensor
 import librosa
 import torch
 
@@ -56,6 +57,8 @@ def compute_metrics(eval_pred):
 encoded_dataset = dataset.map(preprocess_function, remove_columns="audio", batched=True)
 encoded_dataset = encoded_dataset.rename_column("animal", "label")
 
+pos_weight = calc_pos_weight_tensor(encoded_dataset)
+
 accuracy = evaluate.load("accuracy")
 
 model = AutoModelForAudioClassification.from_pretrained(
@@ -83,8 +86,9 @@ training_args = TrainingArguments(
     push_to_hub=False,
 )
 
-trainer = Trainer(
+trainer =  WeightedTrainer(
     model=model,
+    class_weights=pos_weight.to(model.device),
     args=training_args,
     train_dataset=encoded_dataset["train"],
     eval_dataset=encoded_dataset["test"],
@@ -96,16 +100,20 @@ trainer = Trainer(
 # trainer.save_model(training_args.output_dir)
 # feature_extractor.save_pretrained(training_args.output_dir)
 
+
+#inference
 model = AutoModelForAudioClassification.from_pretrained("./pet_voice_model")
 feature_extractor = AutoFeatureExtractor.from_pretrained("./pet_voice_model")
 model.eval()  # Important: set to eval mode
 
 test_audio = (
-    # "/home/evan/Documents/b2ai-models/archive/cats_dogs/test/test/dog_barking_15.wav"
+    #"/home/evan/Documents/b2ai-models/archive/cats_dogs/test/test/dog_barking_15.wav"
     # "/home/evan/Documents/b2ai-models/archive/cats_dogs/test/cats/cat_56.wav"
     #"/home/evan/Documents/b2ai-models/archive/cats_dogs/cat_107.wav"
     #"/home/evan/Documents/b2ai-models/archive/cats_dogs/dog_barking_32.wav"
-    "/home/evan/Documents/b2ai-models/archive/cats_dogs/cat_167.wav"
+    #"/home/evan/Documents/b2ai-models/archive/cats_dogs/cat_167.wav"
+   # "/home/evan/Documents/b2ai-models/archive/cats_dogs/test/test/dog_barking_44.wav"
+   "/home/evan/Documents/b2ai-models/archive/cats_dogs/test/cats/cat_133.wav"
 )
 
 waveform, sr = librosa.load(test_audio, sr=16000)  # waveform is a 1D numpy array
