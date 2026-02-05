@@ -41,7 +41,13 @@ num_labels = 2
 feature_extractor = AutoFeatureExtractor.from_pretrained("microsoft/wavlm-base")
 
 def preprocess_function(examples):
-    audio_arrays = [x["array"] for x in examples["audio"]]
+    audio_arrays = []
+    for x in examples["audio"]:
+        audio = np.array(x["array"])   # convert list → np.array
+        if audio.ndim == 2:            # stereo
+            audio = audio.mean(axis=1) # convert to mono
+        audio_arrays.append(audio)
+    #audio_arrays = [x["array"] for x in examples["audio"]]
     inputs = feature_extractor(
         audio_arrays,
         sampling_rate=feature_extractor.sampling_rate,
@@ -107,13 +113,13 @@ feature_extractor = AutoFeatureExtractor.from_pretrained("./pet_voice_model")
 model.eval()  # Important: set to eval mode
 
 test_audio = (
-    #"/home/evan/Documents/b2ai-models/archive/cats_dogs/test/test/dog_barking_15.wav"
-    # "/home/evan/Documents/b2ai-models/archive/cats_dogs/test/cats/cat_56.wav"
+    "/home/evan/Documents/b2ai-models/archive/cats_dogs/test/test/dog_barking_15.wav"
+    #"/home/evan/Documents/b2ai-models/archive/cats_dogs/test/cats/cat_56.wav"
     #"/home/evan/Documents/b2ai-models/archive/cats_dogs/cat_107.wav"
     #"/home/evan/Documents/b2ai-models/archive/cats_dogs/dog_barking_32.wav"
     #"/home/evan/Documents/b2ai-models/archive/cats_dogs/cat_167.wav"
-   # "/home/evan/Documents/b2ai-models/archive/cats_dogs/test/test/dog_barking_44.wav"
-   "/home/evan/Documents/b2ai-models/archive/cats_dogs/test/cats/cat_133.wav"
+    #"/home/evan/Documents/b2ai-models/archive/cats_dogs/test/test/dog_barking_44.wav"
+   #"/home/evan/Documents/b2ai-models/archive/cats_dogs/test/cats/cat_133.wav"
 )
 
 waveform, sr = librosa.load(test_audio, sr=16000)  # waveform is a 1D numpy array
