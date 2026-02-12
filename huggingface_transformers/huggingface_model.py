@@ -24,7 +24,7 @@ csv_files = {
     'test': '/orcd/data/satra/002/datasets/b2aivoice/b2ai-model/b2ai-models/annotations/train/peds_annotations_test_20000.csv'
 }
 
-#dataset = load_dataset('csv', data_files=csv_files)
+dataset = load_dataset('csv', data_files=csv_files)
 #dataset = dataset["train"].train_test_split(test_size=0.2, shuffle=True, seed=42) # for pets
 
 dataset = dataset.rename_column("file_path", "audio")
@@ -137,8 +137,8 @@ feature_extractor.save_pretrained(training_args.output_dir)
 
 
 #inference
-model = AutoModelForAudioClassification.from_pretrained("./pets_voice_model")
-feature_extractor = AutoFeatureExtractor.from_pretrained("./pets_voice_model")
+model = AutoModelForAudioClassification.from_pretrained("./peds_voice_model")
+feature_extractor = AutoFeatureExtractor.from_pretrained("./peds_voice_model")
 model.eval()  # Important: set to eval mode
 
 test_audio = (
