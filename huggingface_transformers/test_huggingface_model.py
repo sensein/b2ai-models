@@ -32,7 +32,7 @@ y_pred = []
 
 for _, row in df.iterrows():
     file_path = row["file_path"]
-    #label = int(row["adult_audio"])
+    #label = int(row["animal"])
     label = int(row["adult_audio"])
 
     # Load waveform
@@ -50,9 +50,7 @@ for _, row in df.iterrows():
     inputs = feature_extractor(
         [waveform],
         sampling_rate=16000,
-        return_tensors="pt",
-        truncation=True,
-        max_length=16000
+        return_tensors="pt"
     )
     inputs = {k: v.to(device) for k, v in inputs.items()}
 
@@ -86,7 +84,7 @@ print("\n=== Classification Report ===")
 print(classification_report(
     y_true,
     y_pred,
-    target_names=["kid(0)", "adult (1)"]
+    target_names=["kid (0)", "adult (1)"]
 ))
 
 

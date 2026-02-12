@@ -7,6 +7,7 @@ def calc_pos_weight_tensor(dataset):
     num_pos = sum(dataset["train"]["label"])
     num_neg = len(dataset["train"]["label"]) - num_pos
     pos_weight = num_neg/num_pos
+    pos_weight = pos_weight * 1.5 # make 1's more agressive in loss function
     neg_weight = 1.0
     weight_tensor = torch.tensor([neg_weight, pos_weight])
     return weight_tensor

@@ -14,7 +14,6 @@ from customTrainer.trainer import WeightedTrainer, calc_pos_weight_tensor
 import librosa
 import torch
 
-# annotations_df = pd.read_csv("/orcd/data/satra/002/datasets/b2aivoice/b2ai-model/b2ai-models/annotations/pets/pets.csv")
 # change this based on which files etc.
 
 #dataset = load_dataset("csv", data_files="/orcd/data/satra/002/datasets/b2aivoice/b2ai-model/b2ai-models/peds_duration_19000.csv")
@@ -25,8 +24,8 @@ csv_files = {
     'test': '/orcd/data/satra/002/datasets/b2aivoice/b2ai-model/b2ai-models/annotations/train/peds_annotations_test_20000.csv'
 }
 
-dataset = load_dataset('csv', data_files=csv_files)
-#dataset = dataset["train"].train_test_split(test_size=0.2, shuffle=True, seed=42)
+#dataset = load_dataset('csv', data_files=csv_files)
+#dataset = dataset["train"].train_test_split(test_size=0.2, shuffle=True, seed=42) # for pets
 
 dataset = dataset.rename_column("file_path", "audio")
 dataset = dataset.cast_column("audio", Value("string"))  # pyarrow thinks this is long string
@@ -73,6 +72,7 @@ def preprocess_function(examples):
         audio_arrays,
         sampling_rate=feature_extractor.sampling_rate,
         padding=True,
+        return_attention_mask=True, # attention masking to ignore padding during training
     #    max_length=16000,
     #    truncation=True,
     )
@@ -105,18 +105,19 @@ training_args = TrainingArguments(
     output_dir="./peds_voice_model",
     eval_strategy="epoch",
     save_strategy="epoch",
-    learning_rate=5e-5,
+    learning_rate=2e-5,
     per_device_train_batch_size=4,
     gradient_accumulation_steps=4,
     per_device_eval_batch_size=4,
-    num_train_epochs=6,
+    num_train_epochs=8,
     warmup_steps=0.1,
     logging_steps=10,
-    report_to=[],
-    logging_strategy="no",
+    report_to=["tensorboard"],
+    logging_strategy="steps",
     load_best_model_at_end=True,
     metric_for_best_model="accuracy",
     push_to_hub=False,
+    group_by_length=True, # to group longer audio segments together
 )
 
 trainer =  WeightedTrainer(
@@ -136,12 +137,12 @@ feature_extractor.save_pretrained(training_args.output_dir)
 
 
 #inference
-model = AutoModelForAudioClassification.from_pretrained("./peds_voice_model")
-feature_extractor = AutoFeatureExtractor.from_pretrained("./peds_voice_model")
+model = AutoModelForAudioClassification.from_pretrained("./pets_voice_model")
+feature_extractor = AutoFeatureExtractor.from_pretrained("./pets_voice_model")
 model.eval()  # Important: set to eval mode
 
 test_audio = (
-   # "/orcd/data/satra/002/datasets/b2aivoice/b2ai-model/b2ai-models/cats_dogs/test/test/dog_barking_15.wav"
+    #"/orcd/data/satra/002/datasets/b2aivoice/b2ai-model/b2ai-models/cats_dogs/test/test/dog_barking_15.wav"
     # "/orcd/data/satra/002/datasets/b2aivoice/b2ai-model/b2ai-models/cats_dogs/test/cats/cat_56.wav"
    # "/orcd/data/satra/002/datasets/b2aivoice/b2ai-model/b2ai-models/cats_dogs/test/test/dog_barking_44.wav"
    #"/orcd/data/satra/002/datasets/b2aivoice/b2ai-model/b2ai-models/cats_dogs/test/cats/cat_133.wav"
