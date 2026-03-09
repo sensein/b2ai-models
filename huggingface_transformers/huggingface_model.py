@@ -20,8 +20,10 @@ import torch
 #dataset = load_dataset("csv", data_files="/orcd/data/satra/002/datasets/b2aivoice/b2ai-model/b2ai-models/cat_dog.csv")
 
 csv_files = {
-    'train': '/orcd/data/satra/002/datasets/b2aivoice/b2ai-model/b2ai-models/annotations/train/ped_annotation_train_rebalance.csv', 
-    'test': '/orcd/data/satra/002/datasets/b2aivoice/b2ai-model/b2ai-models/annotations/train/peds_annotations_test_20000.csv'
+    #'train': '/orcd/data/satra/002/datasets/b2aivoice/b2ai-model/b2ai-models/annotations/train/ped_annotation_train_rebalance.csv', 
+    'train': '/orcd/data/satra/002/datasets/b2aivoice/b2ai-model/b2ai-models/annotations/train/peds_and_adult_train.csv',
+    #'test': '/orcd/data/satra/002/datasets/b2aivoice/b2ai-model/b2ai-models/annotations/train/peds_annotations_test_20000.csv'
+    'test': '/orcd/data/satra/002/datasets/b2aivoice/b2ai-model/b2ai-models/annotations/train/peds_and_adults_annotations_test.csv'
 }
 
 dataset = load_dataset('csv', data_files=csv_files)
@@ -106,10 +108,10 @@ training_args = TrainingArguments(
     eval_strategy="epoch",
     save_strategy="epoch",
     learning_rate=2e-5,
-    per_device_train_batch_size=4,
+    per_device_train_batch_size=16,
     gradient_accumulation_steps=4,
-    per_device_eval_batch_size=4,
-    num_train_epochs=8,
+    per_device_eval_batch_size=16,
+    num_train_epochs=6,
     warmup_steps=0.1,
     logging_steps=10,
     report_to=["tensorboard"],
@@ -148,7 +150,8 @@ test_audio = (
    #"/orcd/data/satra/002/datasets/b2aivoice/b2ai-model/b2ai-models/cats_dogs/test/cats/cat_133.wav"
    #"/orcd/data/satra/002/datasets/b2aivoice/b2ai-model/b2ai-models/cats_dogs/test/test/dog_barking_44.wav"
    #"/orcd/data/satra/002/datasets/b2aivoice/post_3.0/data/peds/bids_w_features/sub-096sm/ses-218720d1-e753-4ec8-83eb-f31bc7e82b27/audio/sub-096sm_ses-218720d1-e753-4ec8-83eb-f31bc7e82b27_task-favorite-food-1.wav"
-   "/orcd/data/satra/002/datasets/b2aivoice/b2ai-model/b2ai-models/annotations/test_audio/task-picture-37.wav"
+   #"/orcd/data/satra/002/datasets/b2aivoice/b2ai-model/b2ai-models/annotations/test_audio/task-picture-37.wav"
+   "/orcd/data/satra/002/datasets/b2aivoice/post_3.0/data/adult/bids_w_features_2_24/sub-ff75b163-af6b-4ff5-994c-b2d07a61c36a/ses-6A3E7090-5F77-4988-B4C9-47AF0E694DF9/audio/sub-ff75b163-af6b-4ff5-994c-b2d07a61c36a_ses-6A3E7090-5F77-4988-B4C9-47AF0E694DF9_task-Respiration-and-cough-ThreeQuickBreaths-1.wav,1"
 )
 
 #waveform, sr = librosa.load(test_audio, sr=16000)  # waveform is a 1D numpy array
