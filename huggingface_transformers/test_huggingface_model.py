@@ -13,7 +13,8 @@ from sklearn.metrics import (
 import matplotlib.pyplot as plt
 
 
-model_path = "./peds_voice_model"
+model_path = "./peds_voice_model/checkpoint-1926/"
+#model_path = "./peds_voice_model
 model = AutoModelForAudioClassification.from_pretrained(model_path)
 feature_extractor = AutoFeatureExtractor.from_pretrained(model_path)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -22,6 +23,7 @@ model.eval()
 
 
 #test_csv = "/orcd/data/satra/002/datasets/b2aivoice/b2ai-model/b2ai-models/annotations/train/pets_test.csv" 
+#test_csv = "/orcd/data/satra/002/datasets/b2aivoice/b2ai-model/b2ai-models/annotations/train/peds_annotation_test_post_train.csv" 
 test_csv = "/orcd/data/satra/002/datasets/b2aivoice/b2ai-model/b2ai-models/annotations/train/peds_annotation_test_post_train.csv" 
 df = pd.read_csv(test_csv)
 print(f"Loaded {len(df)} test examples")
